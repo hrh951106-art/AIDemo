@@ -26,6 +26,28 @@ export async function GET(
         id,
         userId: session.user.id,
       },
+      include: {
+        assignedUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        project: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
     })
 
     if (!task) {
@@ -87,8 +109,15 @@ export async function PUT(
         id,
       },
       data: {
-        ...validatedData,
+        title: validatedData.title,
+        description: validatedData.description,
+        priority: validatedData.priority,
+        status: validatedData.status,
+        startDate: validatedData.startDate ? new Date(validatedData.startDate) : null,
         dueDate: validatedData.dueDate ? new Date(validatedData.dueDate) : null,
+        projectId: validatedData.projectId === 'none' || !validatedData.projectId ? null : validatedData.projectId,
+        estimatedHours: validatedData.estimatedHours ? parseFloat(validatedData.estimatedHours) : null,
+        assignedUserId: validatedData.assignedUserId === 'none' || !validatedData.assignedUserId ? null : validatedData.assignedUserId,
       },
     })
 

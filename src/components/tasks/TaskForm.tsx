@@ -14,6 +14,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { SearchableSelect } from '@/components/ui/searchable-select'
+
+interface User {
+  id: string
+  name: string | null
+  email: string
+}
+
+interface Project {
+  id: string
+  name: string
+}
 
 interface TaskFormProps {
   open: boolean
@@ -21,6 +33,7 @@ interface TaskFormProps {
   onSubmit: (data: TaskFormData) => Promise<void>
   task?: Task | null
   mode: 'create' | 'edit'
+  defaultDate?: Date | null
 }
 
 export interface TaskFormData {
@@ -28,19 +41,68 @@ export interface TaskFormData {
   description: string
   priority: Priority
   status: TaskStatus
+  startDate: string
   dueDate: string
+  estimatedHours: string
+  assignedUserId: string | null
+  projectId: string | null
 }
 
-export function TaskForm({ open, onClose, onSubmit, task, mode }: TaskFormProps) {
+export function TaskForm({ open, onClose, onSubmit, task, mode, defaultDate }: TaskFormProps) {
   const [formData, setFormData] = useState<TaskFormData>({
     title: '',
     description: '',
     priority: 'MEDIUM',
     status: 'TODO',
+    startDate: '',
     dueDate: '',
+    estimatedHours: '',
+    assignedUserId: null,
+    projectId: null,
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [users, setUsers] = useState<User[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false)
+  const [isLoadingProjects, setIsLoadingProjects] = useState(false)
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setIsLoadingUsers(true)
+        const response = await fetch('/api/users?all=true')
+        if (response.ok) {
+          const data = await response.json()
+          setUsers(data)
+        }
+      } catch (error) {
+        console.error('获取用户列表失败:', error)
+      } finally {
+        setIsLoadingUsers(false)
+      }
+    }
+
+    const fetchProjects = async () => {
+      try {
+        setIsLoadingProjects(true)
+        const response = await fetch('/api/projects')
+        if (response.ok) {
+          const data = await response.json()
+          setProjects(data)
+        }
+      } catch (error) {
+        console.error('获取项目列表失败:', error)
+      } finally {
+        setIsLoadingProjects(false)
+      }
+    }
+
+    if (open) {
+      fetchUsers()
+      fetchProjects()
+    }
+  }, [open])
 
   useEffect(() => {
     if (task && mode === 'edit') {
@@ -49,7 +111,11 @@ export function TaskForm({ open, onClose, onSubmit, task, mode }: TaskFormProps)
         description: task.description || '',
         priority: task.priority,
         status: task.status,
+        startDate: (task as any).startDate ? new Date((task as any).startDate).toISOString().split('T')[0] : '',
         dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+        estimatedHours: (task as any).estimatedHours?.toString() || '',
+        assignedUserId: (task as any).assignedUserId || null,
+        projectId: (task as any).projectId || null,
       })
     } else {
       setFormData({
@@ -57,11 +123,15 @@ export function TaskForm({ open, onClose, onSubmit, task, mode }: TaskFormProps)
         description: '',
         priority: 'MEDIUM',
         status: 'TODO',
-        dueDate: '',
+        startDate: '',
+        dueDate: defaultDate ? defaultDate.toISOString().split('T')[0] : '',
+        estimatedHours: '',
+        assignedUserId: null,
+        projectId: null,
       })
     }
     setError('')
-  }, [task, mode, open])
+  }, [task, mode, open, defaultDate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -90,13 +160,30 @@ export function TaskForm({ open, onClose, onSubmit, task, mode }: TaskFormProps)
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+        <form onSubmit={handleSubmit} className="space-y-5 mt-4">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
               {error}
             </div>
           )}
 
+          {/* 1. 所属项目 */}
+          <div className="space-y-2">
+            <Label htmlFor="projectId" className="text-gray-700 font-medium">
+              所属项目 <span className="text-red-500">*</span>
+            </Label>
+            <SearchableSelect
+              value={formData.projectId || ''}
+              onChange={(value) => setFormData({ ...formData, projectId: value })}
+              options={projects.map((p) => ({ value: p.id, label: p.name }))}
+              placeholder="选择项目..."
+              searchPlaceholder="搜索项目..."
+              disabled={isLoading || isLoadingProjects}
+              className="border-gray-200"
+            />
+          </div>
+
+          {/* 2. 任务标题 */}
           <div className="space-y-2">
             <Label htmlFor="title" className="text-gray-700 font-medium">
               任务标题 <span className="text-red-500">*</span>
@@ -112,6 +199,7 @@ export function TaskForm({ open, onClose, onSubmit, task, mode }: TaskFormProps)
             />
           </div>
 
+          {/* 3. 任务描述 */}
           <div className="space-y-2">
             <Label htmlFor="description" className="text-gray-700 font-medium">
               任务描述
@@ -127,51 +215,82 @@ export function TaskForm({ open, onClose, onSubmit, task, mode }: TaskFormProps)
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="priority" className="text-gray-700 font-medium">
-                优先级
-              </Label>
-              <Select
-                value={formData.priority}
-                onValueChange={(value: Priority) => setFormData({ ...formData, priority: value })}
-                disabled={isLoading}
-              >
-                <SelectTrigger className="border-gray-200">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="LOW">低优先级</SelectItem>
-                  <SelectItem value="MEDIUM">中优先级</SelectItem>
-                  <SelectItem value="HIGH">高优先级</SelectItem>
-                  <SelectItem value="URGENT">紧急</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {mode === 'edit' && (
-              <div className="space-y-2">
-                <Label htmlFor="status" className="text-gray-700 font-medium">
-                  状态
-                </Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value: TaskStatus) => setFormData({ ...formData, status: value })}
-                  disabled={isLoading}
-                >
-                  <SelectTrigger className="border-gray-200">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="TODO">待办</SelectItem>
-                    <SelectItem value="IN_PROGRESS">进行中</SelectItem>
-                    <SelectItem value="DONE">已完成</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+          {/* 4. 优先级 */}
+          <div className="space-y-2">
+            <Label htmlFor="priority" className="text-gray-700 font-medium">
+              优先级
+            </Label>
+            <Select
+              value={formData.priority}
+              onValueChange={(value: Priority) => setFormData({ ...formData, priority: value })}
+              disabled={isLoading}
+            >
+              <SelectTrigger className="border-gray-200">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="LOW">低优先级</SelectItem>
+                <SelectItem value="MEDIUM">中优先级</SelectItem>
+                <SelectItem value="HIGH">高优先级</SelectItem>
+                <SelectItem value="URGENT">紧急</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
+          {/* 5. 负责人 */}
+          <div className="space-y-2">
+            <Label htmlFor="assignedUserId" className="text-gray-700 font-medium">
+              负责人 <span className="text-red-500">*</span>
+            </Label>
+            <SearchableSelect
+              value={formData.assignedUserId || ''}
+              onChange={(value) => setFormData({ ...formData, assignedUserId: value })}
+              options={users.map((u) => ({
+                value: u.id,
+                label: u.name || u.email,
+              }))}
+              placeholder="选择负责人..."
+              searchPlaceholder="搜索用户..."
+              disabled={isLoading || isLoadingUsers}
+              className="border-gray-200"
+            />
+          </div>
+
+          {/* 6. 预计工时 */}
+          <div className="space-y-2">
+            <Label htmlFor="estimatedHours" className="text-gray-700 font-medium">
+              预计工时（小时）
+            </Label>
+            <Input
+              id="estimatedHours"
+              type="number"
+              step="0.5"
+              min="0"
+              value={formData.estimatedHours}
+              onChange={(e) => setFormData({ ...formData, estimatedHours: e.target.value })}
+              placeholder="例如: 8"
+              className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+              disabled={isLoading}
+            />
+          </div>
+
+          {/* 7. 开始日期 */}
+          <div className="space-y-2">
+            <Label htmlFor="startDate" className="text-gray-700 font-medium">
+              开始日期
+            </Label>
+            <Input
+              id="startDate"
+              type="date"
+              value={formData.startDate}
+              onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+              className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+              disabled={isLoading}
+              min={new Date().toISOString().split('T')[0]}
+            />
+          </div>
+
+          {/* 8. 截止日期 */}
           <div className="space-y-2">
             <Label htmlFor="dueDate" className="text-gray-700 font-medium">
               截止日期
@@ -183,9 +302,32 @@ export function TaskForm({ open, onClose, onSubmit, task, mode }: TaskFormProps)
               onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
               className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
               disabled={isLoading}
-              min={new Date().toISOString().split('T')[0]}
+              min={formData.startDate || new Date().toISOString().split('T')[0]}
             />
           </div>
+
+          {/* 编辑模式显示状态 */}
+          {mode === 'edit' && (
+            <div className="space-y-2">
+              <Label htmlFor="status" className="text-gray-700 font-medium">
+                状态
+              </Label>
+              <Select
+                value={formData.status}
+                onValueChange={(value: TaskStatus) => setFormData({ ...formData, status: value })}
+                disabled={isLoading}
+              >
+                <SelectTrigger className="border-gray-200">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="TODO">待办</SelectItem>
+                  <SelectItem value="IN_PROGRESS">进行中</SelectItem>
+                  <SelectItem value="DONE">已完成</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <DialogFooter className="gap-2 mt-6">
             <Button

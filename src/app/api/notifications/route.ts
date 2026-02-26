@@ -7,9 +7,8 @@ import { prisma } from '@/lib/prisma'
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions)
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: '未授权' }, { status: 401 })
+    if (!session?.user) {
+      return NextResponse.json({ error: '未登录' }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -25,25 +24,40 @@ export async function GET(request: Request) {
 
     const notifications = await prisma.notification.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: {
+        createdAt: 'desc',
+      },
       take: 50,
     })
 
-    // 统计未读数量
-    const unreadCount = await prisma.notification.count({
-      where: {
-        userId: session.user.id,
-        isRead: false,
-      },
-    })
-
-    return NextResponse.json({
-      notifications,
-      unreadCount,
-    })
+    return NextResponse.json(notifications)
   } catch (error) {
-    console.error('Get notifications error:', error)
+    console.error('获取通知失败:', error)
     return NextResponse.json({ error: '获取通知失败' }, { status: 500 })
   }
 }
 
+// PATCH /api/notifications - 标记所有通知为已读
+export async function PATCH(request: Request) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json({ error: '未登录' }, { status: 401 })
+    }
+
+    await prisma.notification.updateMany({
+      where: {
+        userId: session.user.id,
+        isRead: false,
+      },
+      data: {
+        isRead: true,
+      },
+    })
+
+    return NextResponse.json({ message: '标记成功' })
+  } catch (error) {
+    console.error('标记通知失败:', error)
+    return NextResponse.json({ error: '标记通知失败' }, { status: 500 })
+  }
+}

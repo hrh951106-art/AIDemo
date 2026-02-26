@@ -10,9 +10,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { MoreVertical, Pencil, Trash2, Calendar } from 'lucide-react'
+import { MoreVertical, Pencil, Trash2, Calendar, MessageCircle } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
+import { useState, useEffect } from 'react'
 
 interface TaskCardProps {
   task: Task & {
@@ -21,10 +22,14 @@ interface TaskCardProps {
       name: string | null
       email: string
     }
+    _count?: {
+      comments: number
+    }
   }
   onEdit: (task: Task) => void
   onDelete: (id: string) => void
   onStatusChange: (id: string, status: TaskStatus) => void
+  onViewComments: (task: Task) => void
 }
 
 const priorityConfig = {
@@ -72,9 +77,27 @@ const statusConfig = {
   },
 }
 
-export function TaskCard({ task, onEdit, onDelete, onStatusChange }: TaskCardProps) {
+export function TaskCard({ task, onEdit, onDelete, onStatusChange, onViewComments }: TaskCardProps) {
   const priority = priorityConfig[task.priority]
   const status = statusConfig[task.status]
+  const [commentCount, setCommentCount] = useState(0)
+
+  // 获取评论数量
+  useEffect(() => {
+    const fetchCommentCount = async () => {
+      try {
+        const response = await fetch(`/api/tasks/${task.id}/comments`)
+        if (response.ok) {
+          const comments = await response.json()
+          setCommentCount(comments.length)
+        }
+      } catch (error) {
+        console.error('获取评论数量失败:', error)
+      }
+    }
+
+    fetchCommentCount()
+  }, [task.id])
 
   return (
     <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-md bg-white/80 backdrop-blur-sm overflow-hidden">
@@ -157,10 +180,10 @@ export function TaskCard({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
         </div>
       </CardHeader>
 
-      <CardContent className="pt-0">
+      <CardContent className="pt-0 space-y-3">
         {/* 截止日期 */}
         {task.dueDate && (
-          <div className="flex items-center text-sm text-gray-500 mt-2">
+          <div className="flex items-center text-sm text-gray-500">
             <Calendar className="h-4 w-4 mr-1.5" />
             <span>
               {formatDistanceToNow(new Date(task.dueDate), {
@@ -171,8 +194,19 @@ export function TaskCard({ task, onEdit, onDelete, onStatusChange }: TaskCardPro
           </div>
         )}
 
+        {/* 评论按钮 */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-gray-600 hover:text-blue-600 hover:bg-blue-50/50"
+          onClick={() => onViewComments(task)}
+        >
+          <MessageCircle className="h-4 w-4 mr-2" />
+          评论 ({commentCount})
+        </Button>
+
         {/* 创建时间 */}
-        <div className="text-xs text-gray-400 mt-3 pt-3 border-t border-gray-100">
+        <div className="text-xs text-gray-400 pt-3 border-t border-gray-100">
           创建于 {formatDistanceToNow(new Date(task.createdAt), { addSuffix: true, locale: zhCN })}
         </div>
       </CardContent>
