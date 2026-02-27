@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // 输出设置
+  // 输出设置 - 生产环境使用 standalone 模式
   output: 'standalone',
 
   // 图片优化
@@ -20,7 +20,10 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['@prisma/client', 'bcryptjs'],
 
   // Turbopack 配置（Next.js 16 默认使用 Turbopack）
-  turbopack: {},
+  turbopack: {
+    // 设置项目根目录，避免多个 lockfile 导致的混淆
+    root: process.cwd(),
+  },
 
   // Webpack配置（保留用于兼容性）
   webpack: (config, { isServer }) => {
