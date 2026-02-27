@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 // DELETE /api/tasks/[id]/comments/[commentId] - 删除评论
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string; commentId: string } }
+  { params }: { params: Promise<{ id: string; commentId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -14,9 +14,11 @@ export async function DELETE(
       return NextResponse.json({ error: '未登录' }, { status: 401 })
     }
 
+    const { commentId } = await params
+
     // 查找评论
     const comment = await prisma.comment.findUnique({
-      where: { id: params.commentId },
+      where: { id: commentId },
     })
 
     if (!comment) {
@@ -30,7 +32,7 @@ export async function DELETE(
 
     // 删除评论（会自动删除相关的 mentions）
     await prisma.comment.delete({
-      where: { id: params.commentId },
+      where: { id: commentId },
     })
 
     return NextResponse.json({ message: '删除成功' })

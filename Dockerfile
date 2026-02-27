@@ -18,11 +18,12 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# 安装 Prisma CLI
-RUN npx prisma generate
+# 设置构建时环境变量
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# 设置环境变量
-ENV NEXT_TELEMETRY_DISABLED 1
+# 生成 Prisma Client（先检查是否需要指定 provider）
+RUN npx prisma generate
 
 # 构建应用
 RUN npm run build

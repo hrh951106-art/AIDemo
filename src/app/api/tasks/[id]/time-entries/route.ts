@@ -12,7 +12,7 @@ const timeEntrySchema = z.object({
 // GET /api/tasks/[id]/time-entries - 获取任务的所有工时记录
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -20,9 +20,11 @@ export async function GET(
       return NextResponse.json({ error: '未登录' }, { status: 401 })
     }
 
+    const { id } = await params
+
     const entries = await prisma.timeEntry.findMany({
       where: {
-        taskId: params.id,
+        taskId: id,
       },
       orderBy: {
         date: 'desc',
@@ -39,7 +41,7 @@ export async function GET(
 // POST /api/tasks/[id]/time-entries - 创建工时记录
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -50,9 +52,11 @@ export async function POST(
     const body = await request.json()
     const validatedData = timeEntrySchema.parse(body)
 
+    const { id } = await params
+
     // 验证任务是否存在
     const task = await prisma.task.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         project: true,
       },
@@ -92,7 +96,7 @@ export async function POST(
       data: {
         hours: validatedData.hours,
         description: validatedData.description,
-        taskId: params.id,
+        taskId: id,
         userId: session.user.id,
         projectId: finalProjectId,
       },

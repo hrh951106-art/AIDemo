@@ -12,7 +12,7 @@ const commentSchema = z.object({
 // GET /api/tasks/[id]/comments - 获取任务的所有评论
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -20,9 +20,11 @@ export async function GET(
       return NextResponse.json({ error: '未登录' }, { status: 401 })
     }
 
+    const { id } = await params
+
     const comments = await prisma.comment.findMany({
       where: {
-        taskId: params.id,
+        taskId: id,
       },
       include: {
         user: {
@@ -48,7 +50,7 @@ export async function GET(
 // POST /api/tasks/[id]/comments - 创建评论
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -59,9 +61,11 @@ export async function POST(
     const body = await request.json()
     const validatedData = commentSchema.parse(body)
 
+    const { id } = await params
+
     // 验证任务是否存在
     const task = await prisma.task.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!task) {
@@ -71,7 +75,7 @@ export async function POST(
     const comment = await prisma.comment.create({
       data: {
         content: validatedData.content,
-        taskId: params.id,
+        taskId: id,
         userId: session.user.id,
       },
       include: {

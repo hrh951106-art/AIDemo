@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 // DELETE /api/tasks/[id]/time-entries/[entryId] - 删除工时记录
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string; entryId: string } }
+  { params }: { params: Promise<{ id: string; entryId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -14,9 +14,11 @@ export async function DELETE(
       return NextResponse.json({ error: '未登录' }, { status: 401 })
     }
 
+    const { entryId } = await params
+
     // 查找工时记录
     const entry = await prisma.timeEntry.findUnique({
-      where: { id: params.entryId },
+      where: { id: entryId },
     })
 
     if (!entry) {
@@ -30,7 +32,7 @@ export async function DELETE(
 
     // 删除工时记录
     await prisma.timeEntry.delete({
-      where: { id: params.entryId },
+      where: { id: entryId },
     })
 
     return NextResponse.json({ message: '删除成功' })

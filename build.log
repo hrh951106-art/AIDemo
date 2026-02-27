@@ -1,0 +1,54 @@
+
+> project-management-system@0.1.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.production, .env
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 12.1s
+  Running TypeScript ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/17) ...
+  Generating static pages using 7 workers (4/17) 
+  Generating static pages using 7 workers (8/17) 
+  Generating static pages using 7 workers (12/17) 
+✓ Generating static pages using 7 workers (17/17) in 498.7ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/auth/register
+├ ƒ /api/health
+├ ƒ /api/notifications
+├ ƒ /api/notifications/[id]
+├ ƒ /api/notifications/[id]/mark-read
+├ ƒ /api/notifications/mark-all-read
+├ ƒ /api/projects
+├ ƒ /api/projects/[id]
+├ ƒ /api/tasks
+├ ƒ /api/tasks/[id]
+├ ƒ /api/tasks/[id]/[taskId]/comments
+├ ƒ /api/tasks/[id]/comments
+├ ƒ /api/tasks/[id]/comments/[commentId]
+├ ƒ /api/tasks/[id]/status
+├ ƒ /api/tasks/[id]/time-entries
+├ ƒ /api/tasks/[id]/time-entries/[entryId]
+├ ƒ /api/time-entries
+├ ƒ /api/users
+├ ƒ /api/users/[id]
+├ ○ /login
+├ ○ /projects
+├ ○ /register
+├ ○ /tasks
+└ ○ /users
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

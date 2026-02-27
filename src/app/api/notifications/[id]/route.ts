@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 // PATCH /api/notifications/[id] - 标记单个通知为已读
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -14,9 +14,11 @@ export async function PATCH(
       return NextResponse.json({ error: '未登录' }, { status: 401 })
     }
 
+    const { id } = await params
+
     const notification = await prisma.notification.update({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
       data: {
@@ -34,7 +36,7 @@ export async function PATCH(
 // DELETE /api/notifications/[id] - 删除通知
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -42,9 +44,11 @@ export async function DELETE(
       return NextResponse.json({ error: '未登录' }, { status: 401 })
     }
 
+    const { id } = await params
+
     await prisma.notification.delete({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
     })
