@@ -15,6 +15,7 @@ interface KanbanColumnProps {
   onEdit: (task: Task) => void
   onDelete: (id: string) => void
   onStatusChange: (id: string, status: TaskStatus) => void
+  onViewComments: (task: Task) => void
 }
 
 const statusColors: Record<TaskStatus, { bg: string; text: string; border: string }> = {
@@ -43,6 +44,7 @@ export function KanbanColumn({
   onEdit,
   onDelete,
   onStatusChange,
+  onViewComments,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id,
@@ -79,6 +81,7 @@ export function KanbanColumn({
               onEdit={onEdit}
               onDelete={onDelete}
               onStatusChange={onStatusChange}
+              onViewComments={onViewComments}
             />
           ))}
         </div>

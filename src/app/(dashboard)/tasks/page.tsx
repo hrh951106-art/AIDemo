@@ -31,6 +31,9 @@ const COLUMNS: { id: TaskStatus; title: string; bgColor: string }[] = [
   { id: 'DONE', title: '已完成', bgColor: 'bg-green-50' },
 ]
 
+// 禁用预渲染，因为使用了 useSession hook
+export const dynamic = 'force-dynamic'
+
 export default function TasksPage() {
   const { data: session } = useSession()
   const [tasks, setTasks] = useState<(Task & {

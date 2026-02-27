@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     if (error instanceof ZodError) {
       // 构建详细的错误信息对象
       const fieldErrors: Record<string, string> = {}
-      error.errors.forEach((err) => {
+      error.issues.forEach((err) => {
         if (err.path.length > 0) {
           const field = err.path[0] as string
           fieldErrors[field] = err.message
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
         {
           error: '表单验证失败',
           fieldErrors,
-          errors: error.errors // 包含完整的错误详情
+          errors: error.issues // 包含完整的错误详情
         },
         { status: 400 }
       )

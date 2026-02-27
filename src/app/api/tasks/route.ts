@@ -107,9 +107,9 @@ export async function POST(request: Request) {
       console.log('验证后的数据:', validatedData)
     } catch (zodError: any) {
       console.error('Zod验证失败:', zodError)
-      console.error('Zod错误详情:', zodError.errors)
+      console.error('Zod错误详情:', zodError.issues)
       return NextResponse.json(
-        { error: zodError.errors?.[0]?.message || '表单验证失败' },
+        { error: zodError.issues?.[0]?.message || '表单验证失败' },
         { status: 400 }
       )
     }
@@ -184,7 +184,7 @@ export async function POST(request: Request) {
 
     if (error.name === 'ZodError') {
       return NextResponse.json(
-        { error: error.errors[0].message },
+        { error: error.issues[0].message },
         { status: 400 }
       )
     }

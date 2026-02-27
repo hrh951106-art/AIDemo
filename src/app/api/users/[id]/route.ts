@@ -128,7 +128,7 @@ export async function PUT(
     console.error('更新用户失败:', error)
 
     if (error.name === 'ZodError') {
-      return NextResponse.json({ error: error.errors[0].message }, { status: 400 })
+      return NextResponse.json({ error: error.issues[0].message }, { status: 400 })
     }
 
     return NextResponse.json({ error: '更新用户失败' }, { status: 500 })

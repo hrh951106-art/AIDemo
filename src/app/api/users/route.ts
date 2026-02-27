@@ -151,8 +151,8 @@ export async function POST(request: Request) {
     console.error('创建用户失败:', error)
 
     if (error.name === 'ZodError') {
-      console.error('Zod验证错误:', error.errors)
-      return NextResponse.json({ error: error.errors[0].message }, { status: 400 })
+      console.error('Zod验证错误:', error.issues)
+      return NextResponse.json({ error: error.issues[0].message }, { status: 400 })
     }
 
     return NextResponse.json({ error: '创建用户失败' }, { status: 500 })

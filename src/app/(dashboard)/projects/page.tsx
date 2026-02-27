@@ -18,6 +18,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
+// 禁用预渲染，因为使用了 useSession hook
+export const dynamic = 'force-dynamic'
+
 export default function ProjectsPage() {
   const { data: session } = useSession()
   const [projects, setProjects] = useState<Project[]>([])

@@ -21,6 +21,7 @@ interface DraggableTaskCardProps {
   onEdit: (task: Task) => void
   onDelete: (id: string) => void
   onStatusChange: (id: string, status: TaskStatus) => void
+  onViewComments: (task: Task) => void
 }
 
 const priorityConfig: Record<Priority, { label: string; color: string }> = {
@@ -35,6 +36,7 @@ export function DraggableTaskCard({
   onEdit,
   onDelete,
   onStatusChange,
+  onViewComments,
 }: DraggableTaskCardProps) {
   const {
     attributes,
@@ -106,6 +108,15 @@ export function DraggableTaskCard({
                   className="cursor-pointer"
                 >
                   编辑
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onViewComments(task)
+                  }}
+                  className="cursor-pointer"
+                >
+                  查看评论
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={(e) => {

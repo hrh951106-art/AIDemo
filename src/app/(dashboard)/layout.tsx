@@ -15,6 +15,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
+// 禁用预渲染，因为使用了 useSession hook
+export const dynamic = 'force-dynamic'
+
 export default function DashboardLayout({
   children,
 }: {

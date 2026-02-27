@@ -84,7 +84,7 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
     }
   }
 
-  const confirmDelete = (commentId: string) => {
+  const confirmDelete = async (commentId: string) => {
     setCommentToDelete(commentId)
     setDeleteDialogOpen(true)
   }

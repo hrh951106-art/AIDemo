@@ -1,9 +1,6 @@
-import { Task, Priority, TaskStatus } from '@prisma/client'
+import { Task, Priority, TaskStatus, Project, Comment, Mention, TimeEntry, Notification } from '@prisma/client'
 
-export type { Task, Priority, TaskStatus }
-
-// 新增类型导出
-export { Project, Comment, Mention, TimeEntry, Notification } from '@prisma/client'
+export type { Task, Priority, TaskStatus, Project, Comment, Mention, TimeEntry, Notification }
 
 export type TaskWithRelations = Task & {
   user?: {
