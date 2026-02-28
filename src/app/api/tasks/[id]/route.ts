@@ -119,7 +119,54 @@ export async function PUT(
         estimatedHours: validatedData.estimatedHours ? parseFloat(validatedData.estimatedHours) : null,
         assignedUserId: validatedData.assignedUserId === 'none' || !validatedData.assignedUserId ? null : validatedData.assignedUserId,
       },
+      include: {
+        assignedUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
     })
+
+    // 如果任务被重新分配给了其他用户，发送通知
+    const newAssignedUserId = validatedData.assignedUserId && validatedData.assignedUserId !== 'none'
+      ? validatedData.assignedUserId
+      : null
+
+    if (newAssignedUserId && newAssignedUserId !== existingTask.assignedUserId && newAssignedUserId !== session.user.id) {
+      await prisma.notification.create({
+        data: {
+          type: 'TASK_ASSIGNED',
+          content: `${session.user.name} 将任务"${task.title}"重新分配给了你`,
+          userId: newAssignedUserId,
+          relatedId: task.id,
+          relatedType: 'TASK',
+        },
+      })
+    }
+
+    // 如果任务状态发生变化，通知被分配的用户（如果他们不是更新者）
+    if (validatedData.status && validatedData.status !== existingTask.status) {
+      if (task.assignedUserId && task.assignedUserId !== session.user.id) {
+        const statusText = {
+          'TODO': '待办',
+          'IN_PROGRESS': '进行中',
+          'DONE': '已完成',
+        }[validatedData.status] || validatedData.status
+
+        await prisma.notification.create({
+          data: {
+            type: 'TASK_UPDATE',
+            content: `${session.user.name} 将任务"${task.title}"的状态更新为"${statusText}"`,
+            userId: task.assignedUserId,
+            relatedId: task.id,
+            relatedType: 'TASK',
+          },
+        })
+      }
+    }
 
     return NextResponse.json(task)
   } catch (error: any) {

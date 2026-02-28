@@ -173,6 +173,19 @@ export async function POST(request: Request) {
 
     console.log('任务创建成功:', task)
 
+    // 如果任务分配给了其他用户，发送通知
+    if (taskData.assignedUserId && taskData.assignedUserId !== session.user.id) {
+      await prisma.notification.create({
+        data: {
+          type: 'TASK_ASSIGNED',
+          content: `${session.user.name} 将任务"${task.title}"分配给了你`,
+          userId: taskData.assignedUserId,
+          relatedId: task.id,
+          relatedType: 'TASK',
+        },
+      })
+    }
+
     return NextResponse.json(task, { status: 201 })
   } catch (error: any) {
     console.error('Create task error:', error)

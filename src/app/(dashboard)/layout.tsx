@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { NotificationCenter } from '@/components/notifications/NotificationCenter'
 
 // 禁用预渲染，因为使用了 useSession hook
 export const dynamic = 'force-dynamic'
@@ -61,12 +62,20 @@ export default function DashboardLayout({
 
             {/* 导航链接 */}
             <nav className="hidden md:flex items-center space-x-1">
-              <Link href="/tasks">
+              <Link href="/my-tasks">
                 <Button variant="ghost" className="text-gray-700 hover:text-blue-600 hover:bg-blue-50/50">
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
-                  任务
+                  我的看板
+                </Button>
+              </Link>
+              <Link href="/tasks">
+                <Button variant="ghost" className="text-gray-700 hover:text-blue-600 hover:bg-blue-50/50">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                  </svg>
+                  全部任务
                 </Button>
               </Link>
               <Link href="/projects">
@@ -89,6 +98,9 @@ export default function DashboardLayout({
 
             {/* 用户菜单 */}
             <div className="flex items-center space-x-4">
+              {/* 通知中心 */}
+              <NotificationCenter />
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">

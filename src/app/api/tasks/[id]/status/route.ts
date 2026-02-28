@@ -54,6 +54,46 @@ export async function PATCH(
       },
     })
 
+    // 如果任务状态发生变化，通知被分配的用户（如果他们不是更新者）
+    if (validatedData.status !== existingTask.status) {
+      if (task.assignedUserId && task.assignedUserId !== session.user.id) {
+        const statusText = {
+          'TODO': '待办',
+          'IN_PROGRESS': '进行中',
+          'DONE': '已完成',
+        }[validatedData.status] || validatedData.status
+
+        await prisma.notification.create({
+          data: {
+            type: 'TASK_UPDATE',
+            content: `${session.user.name} 将任务"${task.title}"的状态更新为"${statusText}"`,
+            userId: task.assignedUserId,
+            relatedId: task.id,
+            relatedType: 'TASK',
+          },
+        })
+      }
+
+      // 如果更新者不是任务创建者，也通知任务创建者
+      if (task.userId !== session.user.id && task.userId !== task.assignedUserId) {
+        const statusText = {
+          'TODO': '待办',
+          'IN_PROGRESS': '进行中',
+          'DONE': '已完成',
+        }[validatedData.status] || validatedData.status
+
+        await prisma.notification.create({
+          data: {
+            type: 'TASK_UPDATE',
+            content: `${session.user.name} 将任务"${task.title}"的状态更新为"${statusText}"`,
+            userId: task.userId,
+            relatedId: task.id,
+            relatedType: 'TASK',
+          },
+        })
+      }
+    }
+
     return NextResponse.json(task)
   } catch (error: any) {
     console.error('Update task status error:', error)
