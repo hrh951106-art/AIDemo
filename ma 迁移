@@ -1,0 +1,20 @@
+[0;1;32m●[0m postgresql-16.service - PostgreSQL 16 database server
+   Loaded: loaded (/usr/lib/systemd/system/postgresql-16.service; enabled; vendor preset: enabled)
+   Active: [0;1;32mactive (running)[0m since Thu 2026-02-26 18:27:21 CST; 24h ago
+     Docs: https://www.postgresql.org/docs/16/static/
+ Main PID: 59593 (postgres)
+    Tasks: 7 (limit: 11828)
+   Memory: 34.0M
+   CGroup: /system.slice/postgresql-16.service
+           ├─59593 /usr/pgsql-16/bin/postgres -D /var/lib/pgsql/16/data/
+           ├─59595 postgres: logger 
+           ├─59596 postgres: checkpointer 
+           ├─59597 postgres: background writer 
+           ├─59599 postgres: walwriter 
+           ├─59600 postgres: autovacuum launcher 
+           └─59601 postgres: logical replication launcher 
+
+2月 26 18:27:21 iZuf67apl70l8v5j4zemp1Z systemd[1]: Starting PostgreSQL 16 database server...
+2月 26 18:27:21 iZuf67apl70l8v5j4zemp1Z postgres[59593]: 2026-02-26 18:27:21.978 CST [59593] LOG:  redirecting log output to logging collector process
+2月 26 18:27:21 iZuf67apl70l8v5j4zemp1Z postgres[59593]: 2026-02-26 18:27:21.978 CST [59593] HINT:  Future log output will appear in directory "log".
+2月 26 18:27:21 iZuf67apl70l8v5j4zemp1Z systemd[1]: Started PostgreSQL 16 database server.
